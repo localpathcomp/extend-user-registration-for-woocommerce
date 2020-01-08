@@ -1,0 +1,50 @@
+<?php
+/**
+ * Global New User Registration Email
+ * 
+ * @example To check the users $_POST form data against a conditional to send emails to alternate addresses with $_POST data
+ *
+ * This template can be added to your functions.php or as a template part
+ * You can also make a plugin for it or a mu-plugin
+ * See docs for User Registration online
+ * Where we are adding an action hook
+ * 
+ * @uses UR_Emailer::do_action( 'user_registration_email_send_after' )
+ * @see https://docs.wpeverest.com/docs/user-registration/
+ * @package user-registration/includes/class-ur-emailer.php
+ * @subpackage UserRegistration/Classes
+ * @version 1.0.0
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+
+add_action( 'user_registration_email_send_after', 'check_email_for_conditional', 10, 4 );
+
+function check_email_for_conditional() {
+   function string_replace( $string ) {
+      return str_replace( array( '[', ']', '"' ), array( '', '', '' ), $string );
+  }
+   global $_POST;
+   $jsonData = stripslashes( $_POST['form_data'] );
+   $subject = 'Our Subject Here';
+   $toEmail = 'email@example.com';
+   $headers = array(
+    'Content-Type: text/html; charset=UTF-8',
+    'From: My WordPress Site <contact@example.com>'
+    );
+   $output = '';
+   $obj = json_decode( $jsonData );
+   $max = sizeof( $obj );
+   for ( $i = 0; $i < $max; $i++ ) {
+       if ( $obj[$i]->field_name === "my_user_registration_field_i_want_to_check" ) {
+           if ( strtoupper($obj[$i]->value ) === "CONDITION OF MY VALUE" ) {
+            $output .= 'My email body';
+            $output .=  $obj[0]->label': '. $obj[0]->value .'.<br>';
+            $output .=  $obj[3]->label': '. $obj[3]->value .'.<br>';
+            $output .= 'My email body';
+            wp_mail( $toEmail, $subject, $output, $headers );
+            }
+        }
+    }
+}
